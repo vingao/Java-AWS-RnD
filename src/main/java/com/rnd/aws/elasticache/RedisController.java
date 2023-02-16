@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -33,7 +35,11 @@ public class RedisController {
 
   @GetMapping("/keys/{key}")
   public ResponseEntity<Object> getKey(@PathVariable("key") String key) {
-    return ResponseEntity.ok(redisUtil.getValue(key));
+    Instant start = Instant.now();
+    Object value = redisUtil.getValue(key);
+    long duration = Duration.between(start, Instant.now()).toMillis();
+    ResponseEntity<Object> ok = ResponseEntity.ok("got value " + value + " in " + duration + " ms");
+    return ok;
   }
 
   @PostMapping("/keys/{key}/{value}")

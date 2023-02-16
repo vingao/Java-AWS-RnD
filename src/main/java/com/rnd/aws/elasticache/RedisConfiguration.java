@@ -10,6 +10,8 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -30,24 +32,29 @@ public class RedisConfiguration {
   @Value("${redis.port}")
   private int redisPort;
 
+  @Value("${redis.pwd}")
+  private String redisPwd;
+
   //Standalone Redis connection factory
-  //  @Bean
-  //  JedisConnectionFactory jedisConnectionFactory() {
-  //    RedisStandaloneConfiguration redisStandaloneConfiguration =
-  //        new RedisStandaloneConfiguration(redisHostName, redisPort);
-  //    return new JedisConnectionFactory(redisStandaloneConfiguration);
-  //  }
+    @Bean
+    JedisConnectionFactory jedisConnectionFactory() {
+      RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(redisHostName, redisPort);
+      redisStandaloneConfiguration.setPassword(redisPwd);
+      JedisClientConfiguration confJedis = JedisClientConfiguration.builder().useSsl().and().usePooling().build();
+//      JedisClientConfiguration confJedis = JedisClientConfiguration.builder().usePooling().build();
+      return new JedisConnectionFactory(redisStandaloneConfiguration, confJedis);
+    }
 
-  List<String> clusterNodes =
-      Arrays.asList(
-          "node1:6379",
-          "node2:6379",
-          "node3:6379");
-
-  @Bean
-  RedisConnectionFactory connectionFactory() {
-    return new JedisConnectionFactory(new RedisClusterConfiguration(clusterNodes));
-  }
+//  List<String> clusterNodes =
+//      Arrays.asList(
+//          "node1:6379",
+//          "node2:6379",
+//          "node3:6379");
+//
+//  @Bean
+//  RedisConnectionFactory connectionFactory() {
+//    return new JedisConnectionFactory(new RedisClusterConfiguration(clusterNodes));
+//  }
 
   @Bean(value = "redisTemplate")
   public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
